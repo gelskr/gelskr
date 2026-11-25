@@ -3,16 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Games & Anime</title>
+  <title>New Tab</title>
 
   <style>
     * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
 
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #10111a;
-      color: #f5f5ff;
+      background: #090909;
+      color: #f5f5f5;
+      font-family: system-ui, sans-serif;
     }
 
     .app {
@@ -24,80 +25,46 @@
     .sidebar {
       width: 200px;
       flex-shrink: 0;
-      padding: 20px 12px;
-      background: #191a28;
-      border-right: 1px solid #303044;
+      padding: 28px 16px;
+      background: #0e0e0e;
+      border-right: 1px solid #222;
     }
 
-    .sidebar h2 {
-      margin: 0 8px 24px;
-      font-size: 20px;
+    .logo {
+      margin: 0 10px 32px;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
     }
 
-    .tab {
-      display: block;
-      width: 100%;
-      margin-bottom: 8px;
+    .nav-item {
       padding: 12px;
-      border: 0;
       border-radius: 8px;
-      background: transparent;
-      color: #c7c7d8;
-      text-align: left;
-      font-size: 16px;
-      cursor: pointer;
+      background: #202020;
+      font-size: 14px;
     }
-
-    .tab:hover { background: #292a40; }
-    .tab.active { background: #7157e8; color: white; }
 
     main {
-      flex: 1;
-      min-width: 0;
-      padding: 20px;
-      overflow: auto;
-    }
-
-    .page { display: none; }
-    .page.active {
       display: flex;
+      flex: 1;
       flex-direction: column;
-      height: 100%;
-      gap: 14px;
+      min-width: 0;
+      padding: 32px;
+      gap: 20px;
     }
 
-    h1 { margin: 0; font-size: 24px; }
-    p { margin: 0; color: #b4b4c8; line-height: 1.5; }
-
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
+    h1 {
+      margin: 0 0 6px;
+      font-size: 26px;
+      letter-spacing: -0.03em;
     }
 
-    input {
-      flex: 1;
-      min-width: 180px;
-      padding: 11px;
-      border: 1px solid #42425b;
-      border-radius: 8px;
-      background: #202132;
-      color: white;
+    p {
+      margin: 0;
+      color: #888;
       font-size: 14px;
     }
-
-    button, .open-link {
-      padding: 11px 15px;
-      border: 0;
-      border-radius: 8px;
-      background: #7157e8;
-      color: white;
-      font-size: 14px;
-      text-decoration: none;
-      cursor: pointer;
-    }
-
-    button:hover, .open-link:hover { background: #856ff0; }
 
     .game-list {
       display: flex;
@@ -105,22 +72,60 @@
       gap: 8px;
     }
 
-    .game-list button { background: #33344b; }
-    .game-list button:hover { background: #4b4c6a; }
+    .game-button {
+      padding: 10px 16px;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      background: #151515;
+      color: #ccc;
+      font: inherit;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .game-button:hover {
+      background: #222;
+      color: white;
+    }
+
+    .game-button.active {
+      border-color: #777;
+      background: #292929;
+      color: white;
+    }
+
+    .viewer {
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      border: 1px solid #222;
+      border-radius: 12px;
+      background: #111;
+    }
+
+    .placeholder {
+      display: grid;
+      height: 100%;
+      place-items: center;
+      color: #666;
+      font-size: 14px;
+    }
 
     iframe {
-      flex: 1;
+      display: block;
       width: 100%;
-      min-height: 300px;
-      border: 1px solid #38384e;
-      border-radius: 8px;
-      background: white;
+      height: 100%;
+      border: 0;
     }
 
     @media (max-width: 600px) {
-      .sidebar { width: 105px; padding: 15px 8px; }
-      .sidebar h2 { font-size: 16px; }
-      main { padding: 14px; }
+      .sidebar {
+        width: 100px;
+        padding: 24px 10px;
+      }
+
+      .logo { font-size: 12px; }
+      main { padding: 20px; }
     }
   </style>
 </head>
@@ -128,102 +133,54 @@
 <body>
   <div class="app">
     <aside class="sidebar">
-      <h2>My Hub</h2>
-      <button class="tab active" data-page="games">🎮 Games</button>
-      <button class="tab" data-page="anime">📺 Anime</button>
+      <div class="logo">My Hub</div>
+      <div class="nav-item">Games</div>
     </aside>
 
     <main>
-      <section id="games" class="page active">
-        <h1>Games</h1>
-        <p>Choose a game to play.</p>
-        <div id="gameList" class="game-list"></div>
-        <iframe id="gameFrame" title="Game viewer"></iframe>
-      </section>
+      <header>
+        <h1>library</h1>
+        <p>pick</p>
+      </header>
 
-      <section id="anime" class="page">
-        <h1>Anime</h1>
-        <p>Enter the address of a website you want to view.</p>
-        <form id="animeForm" class="controls">
-          <input
-            id="animeUrl"
-            type="url"
-            placeholder="https://example.com"
-            required
-          >
-          <button type="submit">Open</button>
-          <a id="externalLink" class="open-link" target="_blank"
-             rel="noopener noreferrer" hidden>Open in new tab</a>
-        </form>
-        <p>Some websites block being displayed inside another page. Use “Open in new tab” if that happens.</p>
-        <iframe id="animeFrame" title="Anime website viewer"></iframe>
-      </section>
+      <div id="gameList" class="game-list"></div>
+
+      <div class="viewer">
+        <div id="placeholder" class="placeholder">Select a game to play</div>
+        <iframe id="gameFrame" title="Game viewer" hidden></iframe>
+      </div>
     </main>
   </div>
 
   <script>
-    // ADD YOUR GAMES HERE:
-    // Put each game in its own folder inside the "games" folder.
+    // Add your games here.
     const games = [
       { name: "Game 1", path: "games/game1/index.html" },
       { name: "Game 2", path: "games/game2/index.html" }
     ];
 
-    // Switch sidebar tabs.
-    document.querySelectorAll(".tab").forEach(tab => {
-      tab.addEventListener("click", () => {
-        document.querySelectorAll(".tab, .page").forEach(element => {
-          element.classList.remove("active");
-        });
-        tab.classList.add("active");
-        document.getElementById(tab.dataset.page).classList.add("active");
-      });
-    });
-
-    // Create a button for each game.
     const gameList = document.getElementById("gameList");
     const gameFrame = document.getElementById("gameFrame");
+    const placeholder = document.getElementById("placeholder");
 
     games.forEach(game => {
       const button = document.createElement("button");
+      button.className = "game-button";
       button.textContent = game.name;
+
       button.addEventListener("click", () => {
+        document.querySelectorAll(".game-button").forEach(item => {
+          item.classList.remove("active");
+        });
+
+        button.classList.add("active");
+        placeholder.hidden = true;
+        gameFrame.hidden = false;
         gameFrame.src = game.path;
       });
+
       gameList.appendChild(button);
     });
-
-    // Save and display the selected anime website.
-    const animeForm = document.getElementById("animeForm");
-    const animeUrl = document.getElementById("animeUrl");
-    const animeFrame = document.getElementById("animeFrame");
-    const externalLink = document.getElementById("externalLink");
-
-    function openAnimeSite(url) {
-      const parsed = new URL(url);
-      if (!["http:", "https:"].includes(parsed.protocol)) {
-        throw new Error("Please enter an HTTP or HTTPS URL.");
-      }
-      animeFrame.src = parsed.href;
-      externalLink.href = parsed.href;
-      externalLink.hidden = false;
-      localStorage.setItem("animeWebsite", parsed.href);
-    }
-
-    animeForm.addEventListener("submit", event => {
-      event.preventDefault();
-      try {
-        openAnimeSite(animeUrl.value);
-      } catch {
-        alert("Please enter a valid URL starting with http:// or https://");
-      }
-    });
-
-    const savedUrl = localStorage.getItem("animeWebsite");
-    if (savedUrl) {
-      animeUrl.value = savedUrl;
-      try { openAnimeSite(savedUrl); } catch { /* Ignore invalid saved URLs. */ }
-    }
   </script>
 </body>
 </html>
