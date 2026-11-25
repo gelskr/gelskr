@@ -1,1 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>2048</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; min-height: 100dvh;
+      display: grid; place-items: center; padding: 20px;
+      background: #101010; color: #f5f5f5;
+      font-family: system-ui, sans-serif;
+    }
+    .game { width: min(100%, 440px); animation: enter .5s ease both; }
+    header { display: flex; justify-content: space-between; align-items: end; gap: 12px; }
+    h1 { margin: 0; font-size: 42px; letter-spacing: -.06em; }
+    p { color: #999; font-size: 13px; margin: 5px 0 0; }
+    .score { text-align: right; color: #999; font-size: 12px; }
+    .score strong { display: block; color: white; font-size: 24px; }
+    .bar { display: flex; justify-content: space-between; align-items: center; margin: 20px 0 12px; }
+    button {
+      border: 1px solid #383838; border-radius: 9px;
+      padding: 9px 14px; background: #222; color: white;
+      font: inherit; cursor: pointer; transition: background .2s, transform .2s;
+    }
+    button:hover { background: #333; transform: translateY(-2px); }
+    button:active { transform: scale(.96); }
+    #status { color: #aaa; font-size: 13px; }
+    .board {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 8px; padding: 8px; border: 1px solid #333;
+      border-radius: 14px; background: #1b1b1b; touch-action: none;
+    }
+    .tile {
+      aspect-ratio: 1; display: grid; place-items: center;
+      border-radius: 9px; background: #292929;
+      color: #fff; font-size: clamp(20px, 6vw, 35px); font-weight: 750;
+      transition: background .18s, color .18s;
+    }
+    .v2 { background: #454545; } .v4 { background: #595959; }
+    .v8 { background: #806148; } .v16 { background: #a66d42; }
+    .v32 { background: #bc704b; } .v64 { background: #c75e4a; }
+    .high { background: #af9148; font-size: clamp(17px, 5vw, 29px); }
+    .hint { text-align: center; margin-top: 14px; }
+    @keyframes enter { from { opacity: 0; transform: translateY(10px); } }
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="game">
+    <header>
+      <div><h1>2048</h1><p>Combine matching tiles.</p></div>
+      <div class="score">SCORE<strong id="score">0</strong></div>
+    </header>
+    <div class="bar">
+      <span id="status" aria-live="polite"></span>
+      <button id="reset">New game</button>
+    </div>
+    <div id="board" class="board" aria-label="2048 game board"></div>
+    <p class="hint">Arrow keys / WASD · Swipe on mobile</p>
+  </div>
 
+  <script>
+    const boardEl = document.getElementById("board");
+    const scoreEl = document.getElementById("score");
+    const statusEl = document.getElementById("status");
+    let board, score, won, over;
+
+    function addTile() {
+      const empty = [];
+      for (let r = 0; r < 4; r++)
+        for (let c = 0; c < 4; c++)
+          if (!board[r][c]) empty.push([r, c]);
+
+      if (empty.length) {
+        const [r, c] = empty[Math.floor(Math.random() * empty.length)];
+        board[r][c] = Math.random() < 0.9 ? 2 : 4;
+      }
+    }
+
+    function reset() {
+      board = Array.from({ length: 4 }, () => Array(4).fill(0));
+      score = 0;
+      won = false;
+      over = false;
+      addTile();
+      addTile();
+      render();
+    }
+
+    function render() {
+      boardEl.replaceChildren();
+      board.flat().forEach(value => {
+        const tile = document.createElement("div");
+        tile.className = "tile" + (value ? (value <= 64 ? ` v${value}` : " high") : "");
+        tile.textContent = value || "";
+        boardEl.appendChild(tile);
+      });
+      scoreEl.textContent = score;
+      statusEl.textContent = over ? "Game over" : won ? "2048 reached! Keep going." : "";
+    }
+
+    function canMove() {
+      for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 4; c++) {
+          if (!board[r][c]) return true;
+          if (r < 3 && board[r][c] === board[r + 1][c]) return true;
+          if (c < 3 && board[r][c] === board[r][c + 1]) return true;
+        }
+      }
+      return false;
+    }
+
+    function move(direction) {
+      if (over) return;
+      const before = JSON.stringify(board);
+
+      for (let i = 0; i < 4; i++) {
+        // Read each line from the side it is moving toward.
+        const coords = Array.from({ length: 4 }, (_, j) => {
+          if (direction === "left") return [i, j];
+          if (direction === "right") return [i, 3 - j];
+          if (direction === "up") return [j, i];
+          return [3 - j, i];
+        });
+
+        const values = coords.map(([r, c]) => board[r][c]).filter(Boolean);
+        const merged = [];
+
+        for (let j = 0; j < values.length; j++) {
+          if (values[j] === values[j + 1]) {
+            const value = values[j] * 2;
+            merged.push(value);
+            score += value;
+            if (value === 2048) won = true;
+            j++;
+          } else {
+            merged.push(values[j]);
+          }
+        }
+
+        coords.forEach(([r, c], j) => {
+          board[r][c] = merged[j] || 0;
+        });
+      }
+
+      if (JSON.stringify(board) !== before) addTile();
+      over = !canMove();
+      render();
+    }
+
+    document.addEventListener("keydown", event => {
+      const keys = {
+        arrowleft: "left", a: "left",
+        arrowright: "right", d: "right",
+        arrowup: "up", w: "up",
+        arrowdown: "down", s: "down"
+      };
+      const direction = keys[event.key.toLowerCase()];
+      if (direction) {
+        event.preventDefault();
+        move(direction);
+      }
+    });
+
+    let startTouch;
+    boardEl.addEventListener("touchstart", event => {
+      const t = event.touches[0];
+      startTouch = { x: t.clientX, y: t.clientY };
+    }, { passive: true });
+
+    boardEl.addEventListener("touchend", event => {
+      if (!startTouch) return;
+      const t = event.changedTouches[0];
+      const dx = t.clientX - startTouch.x;
+      const dy = t.clientY - startTouch.y;
+      startTouch = null;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 20) return;
+      move(Math.abs(dx) > Math.abs(dy)
+        ? (dx > 0 ? "right" : "left")
+        : (dy > 0 ? "down" : "up"));
+    }, { passive: true });
+
+    document.getElementById("reset").addEventListener("click", reset);
+    reset();
+  </script>
+</body>
+</html>
