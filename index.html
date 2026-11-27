@@ -101,11 +101,31 @@
     let lastGameButton = null;
     let switchingScreen = false;
 
-    function focusGame() {
-      if (!gameView.hidden) {
-        frame.focus();
+function focusGame() {
+  if (gameView.hidden) return;
+
+  frame.focus();
+
+  try {
+    const gameWindow = frame.contentWindow;
+    const gameDocument = frame.contentDocument;
+
+    gameWindow.focus();
+
+    // Eaglercraft normally displays the game in a canvas.
+    const canvas = gameDocument.querySelector("canvas");
+
+    if (canvas) {
+      if (!canvas.hasAttribute("tabindex")) {
+        canvas.tabIndex = -1;
       }
+
+      canvas.focus();
     }
+  } catch (error) {
+    // Cross-origin games may not allow access to their canvas.
+  }
+}
 
     function updateMuteButton() {
       const label = muted ? "Unmute game" : "Mute game";
@@ -263,16 +283,16 @@
       }
     });
 
-    document.addEventListener("fullscreenchange", () => {
-      const isFullscreen = document.fullscreenElement === gameView;
-      const label = isFullscreen ? "Exit fullscreen" : "Enter fullscreen";
+document.addEventListener("fullscreenchange", () => {
+  const isFullscreen = document.fullscreenElement === gameView;
+  const label = isFullscreen ? "Exit fullscreen" : "Enter fullscreen";
 
-      fullscreenButton.setAttribute("aria-label", label);
-      fullscreenButton.title = label;
+  fullscreenButton.setAttribute("aria-label", label);
+  fullscreenButton.title = label;
 
-      // Wait for the fullscreen layout to update.
-      requestAnimationFrame(focusGame);
-    });
+  // Give the browser time to finish switching fullscreen.
+  setTimeout(focusGame, 150);
+});
 
     games.forEach(game => {
       const button = document.createElement("button");
