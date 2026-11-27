@@ -79,7 +79,13 @@
   <script>
     // Add more games here.
     const games = [
-      { name: "minecraft", path: "games/eagler/index.html" }
+      { name: "snake", path: "games/snake/index.html" },
+      { name: "2048", path: "games/2048/index.html" },
+      { name: "flappy bird", path: "games/flappybird/index.html" },
+      { name: "minesweeper", path: "games/minesweeper/index.html" },
+      { name: "pong", path: "games/pong/index.html" },
+      { name: "reaction test", path: "games/reaction/index.html" },
+      { name: "minecraft 1.8", path: "games/eagler/index.html" }
     ];
 
     const library = document.getElementById("library");
@@ -94,6 +100,12 @@
     let mediaObserver = null;
     let lastGameButton = null;
     let switchingScreen = false;
+
+    function focusGame() {
+      if (!gameView.hidden) {
+        frame.focus();
+      }
+    }
 
     function updateMuteButton() {
       const label = muted ? "Unmute game" : "Mute game";
@@ -161,6 +173,7 @@
 
     async function openGame(game, button) {
       if (switchingScreen) return;
+
       switchingScreen = true;
       lastGameButton = button;
 
@@ -176,7 +189,7 @@
       frame.src = game.path;
 
       fadeIn(gameView);
-      frame.focus();
+      focusGame();
 
       await waitForTransition();
       switchingScreen = false;
@@ -184,6 +197,7 @@
 
     async function returnToLibrary() {
       if (switchingScreen) return;
+
       switchingScreen = true;
 
       gameView.classList.add("screen-leaving");
@@ -204,6 +218,7 @@
 
       // Unload the game so its audio and activity stop.
       frame.removeAttribute("src");
+
       gameView.hidden = true;
       gameView.classList.remove("screen-leaving");
 
@@ -211,18 +226,24 @@
       library.hidden = false;
       fadeIn(library);
 
-      if (lastGameButton) lastGameButton.focus();
+      if (lastGameButton) {
+        lastGameButton.focus();
+      }
 
       await waitForTransition();
       switchingScreen = false;
     }
 
-    frame.addEventListener("load", observeGameMedia);
+    frame.addEventListener("load", () => {
+      observeGameMedia();
+      focusGame();
+    });
 
     muteButton.addEventListener("click", () => {
       muted = !muted;
       updateMuteButton();
       applyMute();
+      focusGame();
     });
 
     backButton.addEventListener("click", returnToLibrary);
@@ -234,8 +255,11 @@
         } else {
           await gameView.requestFullscreen();
         }
+
+        focusGame();
       } catch (error) {
         alert("Fullscreen isn't available in this browser.");
+        focusGame();
       }
     });
 
@@ -245,6 +269,9 @@
 
       fullscreenButton.setAttribute("aria-label", label);
       fullscreenButton.title = label;
+
+      // Wait for the fullscreen layout to update.
+      requestAnimationFrame(focusGame);
     });
 
     games.forEach(game => {
