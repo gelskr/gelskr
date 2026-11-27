@@ -4,10 +4,50 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>New Tab</title>
+
   <link rel="stylesheet" href="style.css">
+
+  <style>
+    #exitDialog {
+      border: 1px solid #555;
+      border-radius: 12px;
+      padding: 24px;
+      background: #222;
+      color: white;
+      text-align: center;
+      font-family: inherit;
+    }
+
+    #exitDialog::backdrop {
+      background: rgba(0, 0, 0, 0.7);
+    }
+
+    .exit-actions {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .exit-actions button {
+      width: 52px;
+      height: 52px;
+      border: 1px solid #777;
+      border-radius: 8px;
+      background: #333;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    .exit-actions button:hover {
+      background: #555;
+    }
+  </style>
 </head>
 
 <body>
+  <!-- Game library -->
   <main id="library" class="library">
     <header class="library-header">
       <h1>library</h1>
@@ -17,6 +57,7 @@
     <div id="gameList" class="game-list"></div>
   </main>
 
+  <!-- Game window -->
   <section
     id="gameView"
     class="game-view"
@@ -76,15 +117,30 @@
     </div>
   </section>
 
+  <!-- Exit confirmation -->
+  <dialog id="exitDialog" aria-labelledby="exitTitle">
+    <h2 id="exitTitle">Are you sure you want to exit?</h2>
+    <p>Your game will close. Make sure you have saved your progress.</p>
+
+    <div class="exit-actions">
+      <button
+        id="cancelExit"
+        type="button"
+        aria-label="Cancel and return to game"
+        title="Return to game"
+      >✕</button>
+
+      <button
+        id="confirmExit"
+        type="button"
+        aria-label="Confirm exit"
+        title="Exit game"
+      >✓</button>
+    </div>
+  </dialog>
+
   <script>
-    // Add more games here.
     const games = [
-      { name: "snake", path: "games/snake/index.html" },
-      { name: "2048", path: "games/2048/index.html" },
-      { name: "flappy bird", path: "games/flappybird/index.html" },
-      { name: "minesweeper", path: "games/minesweeper/index.html" },
-      { name: "pong", path: "games/pong/index.html" },
-      { name: "reaction test", path: "games/reaction/index.html" },
       { name: "minecraft 1.8", path: "games/eagler/index.html" }
     ];
 
@@ -95,40 +151,44 @@
     const fullscreenButton = document.getElementById("fullscreenButton");
     const muteButton = document.getElementById("muteButton");
     const backButton = document.getElementById("backButton");
+    const exitDialog = document.getElementById("exitDialog");
+    const cancelExit = document.getElementById("cancelExit");
+    const confirmExit = document.getElementById("confirmExit");
 
     let muted = false;
     let mediaObserver = null;
     let lastGameButton = null;
     let switchingScreen = false;
 
-function focusGame() {
-  if (gameView.hidden) return;
+    // Return keyboard focus to Eaglercraft's canvas when possible.
+    function focusGame() {
+      if (gameView.hidden) return;
 
-  frame.focus();
+      frame.focus();
 
-  try {
-    const gameWindow = frame.contentWindow;
-    const gameDocument = frame.contentDocument;
+      try {
+        const gameWindow = frame.contentWindow;
+        const gameDocument = frame.contentDocument;
 
-    gameWindow.focus();
+        gameWindow.focus();
 
-    // Eaglercraft normally displays the game in a canvas.
-    const canvas = gameDocument.querySelector("canvas");
+        const canvas = gameDocument.querySelector("canvas");
 
-    if (canvas) {
-      if (!canvas.hasAttribute("tabindex")) {
-        canvas.tabIndex = -1;
+        if (canvas) {
+          if (!canvas.hasAttribute("tabindex")) {
+            canvas.tabIndex = -1;
+          }
+
+          canvas.focus();
+        }
+      } catch (error) {
+        // Cross-origin games may not allow access to their canvas.
       }
-
-      canvas.focus();
     }
-  } catch (error) {
-    // Cross-origin games may not allow access to their canvas.
-  }
-}
 
     function updateMuteButton() {
       const label = muted ? "Unmute game" : "Mute game";
+
       muteButton.setAttribute("aria-pressed", String(muted));
       muteButton.setAttribute("aria-label", label);
       muteButton.title = label;
@@ -205,6 +265,7 @@ function focusGame() {
 
       gameView.classList.add("screen-leaving");
       gameView.hidden = false;
+
       frame.title = game.name;
       frame.src = game.path;
 
@@ -244,6 +305,7 @@ function focusGame() {
 
       library.classList.add("screen-leaving");
       library.hidden = false;
+
       fadeIn(library);
 
       if (lastGameButton) {
@@ -266,7 +328,27 @@ function focusGame() {
       focusGame();
     });
 
-    backButton.addEventListener("click", returnToLibrary);
+    // Ask before returning to the library.
+    backButton.addEventListener("click", () => {
+      if (!switchingScreen && !exitDialog.open) {
+        exitDialog.showModal();
+      }
+    });
+
+    cancelExit.addEventListener("click", () => {
+      exitDialog.close();
+      focusGame();
+    });
+
+    confirmExit.addEventListener("click", () => {
+      exitDialog.close();
+      returnToLibrary();
+    });
+
+    // Pressing Esc cancels the confirmation.
+    exitDialog.addEventListener("cancel", () => {
+      setTimeout(focusGame, 0);
+    });
 
     fullscreenButton.addEventListener("click", async () => {
       try {
@@ -283,19 +365,20 @@ function focusGame() {
       }
     });
 
-document.addEventListener("fullscreenchange", () => {
-  const isFullscreen = document.fullscreenElement === gameView;
-  const label = isFullscreen ? "Exit fullscreen" : "Enter fullscreen";
+    document.addEventListener("fullscreenchange", () => {
+      const isFullscreen = document.fullscreenElement === gameView;
+      const label = isFullscreen ? "Exit fullscreen" : "Enter fullscreen";
 
-  fullscreenButton.setAttribute("aria-label", label);
-  fullscreenButton.title = label;
+      fullscreenButton.setAttribute("aria-label", label);
+      fullscreenButton.title = label;
 
-  // Give the browser time to finish switching fullscreen.
-  setTimeout(focusGame, 150);
-});
+      // Give the browser time to finish switching fullscreen.
+      setTimeout(focusGame, 150);
+    });
 
     games.forEach(game => {
       const button = document.createElement("button");
+
       button.type = "button";
       button.className = "game-card";
       button.setAttribute("aria-label", `Play ${game.name}`);
@@ -321,7 +404,7 @@ document.addEventListener("fullscreenchange", () => {
         }
       });
 
-      // For example, games/snake/index.html -> games/snake/icon.png.
+      // games/eagler/index.html -> games/eagler/icon.png
       icon.src = game.path.replace(/[^/]+$/, "icon.png");
 
       const name = document.createElement("span");
@@ -330,7 +413,11 @@ document.addEventListener("fullscreenchange", () => {
 
       iconWrap.appendChild(icon);
       button.append(iconWrap, name);
-      button.addEventListener("click", () => openGame(game, button));
+
+      button.addEventListener("click", () => {
+        openGame(game, button);
+      });
+
       gameList.appendChild(button);
     });
 
