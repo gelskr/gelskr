@@ -59,6 +59,8 @@
     }
 
     .exit-actions button:hover {
+      background: #444;
+      border-color: #666;
       transform: translateY(-3px);
     }
 
@@ -69,16 +71,6 @@
     .exit-actions button:focus-visible {
       outline: 2px solid white;
       outline-offset: 3px;
-    }
-
-    .exit-actions .exit-cancel:hover {
-      background: #65383b;
-      border-color: #ad656a;
-    }
-
-    .exit-actions .exit-confirm:hover {
-      background: #315a43;
-      border-color: #5caa79;
     }
 
     .exit-actions svg {
@@ -192,18 +184,6 @@
 
     <div class="exit-actions">
       <button
-        id="cancelExit"
-        class="exit-cancel"
-        type="button"
-        aria-label="Cancel and return to game"
-        title="Return to game"
-      >
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M6 6l12 12M18 6L6 18"/>
-        </svg>
-      </button>
-
-      <button
         id="confirmExit"
         class="exit-confirm"
         type="button"
@@ -212,6 +192,19 @@
       >
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M5 12l5 5L19 7"/>
+        </svg>
+      </button>
+
+      <button
+        id="cancelExit"
+        class="exit-cancel"
+        type="button"
+        aria-label="Cancel and return to game"
+        title="Return to game"
+        autofocus
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 6l12 12M18 6L6 18"/>
         </svg>
       </button>
     </div>
@@ -406,7 +399,6 @@
       focusGame();
     });
 
-    // Ask before returning to the library.
     backButton.addEventListener("click", () => {
       if (!switchingScreen && !exitDialog.open) {
         exitDialog.showModal();
