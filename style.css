@@ -1,0 +1,270 @@
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+:root {
+  color-scheme: dark;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #080808;
+  color: #f5f5f5;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+button:focus-visible {
+  outline: 2px solid #ddd;
+  outline-offset: 3px;
+}
+
+/* Library */
+
+.library {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 64px 28px;
+}
+
+.library-header {
+  margin: 0 auto 48px;
+  text-align: center;
+}
+
+.library-header h1 {
+  margin: 0;
+  font-size: clamp(32px, 5vw, 48px);
+  font-weight: 750;
+  letter-spacing: -.06em;
+}
+
+.library-header p {
+  margin: 10px 0 0;
+  color: #777;
+  font-size: 14px;
+}
+
+.game-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 16px;
+  width: min(100%, 1200px);
+  margin: 0 auto;
+}
+
+.game-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #252525;
+  border-radius: 15px;
+  background: #111;
+  text-align: left;
+  transition: transform .2s ease, border-color .2s ease,
+              background .2s ease;
+}
+
+.game-card:hover {
+  transform: translateY(-4px);
+  border-color: #505050;
+  background: #181818;
+}
+
+.game-card:active {
+  transform: scale(.98);
+}
+
+.icon-wrap {
+  display: grid;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  place-items: center;
+  border-radius: 9px;
+  background: #1c1c1c;
+  color: #777;
+  font-size: 28px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.game-icon {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.game-name {
+  overflow: hidden;
+  padding: 0 3px 4px;
+  color: #ddd;
+  font-size: 14px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Game view */
+
+.game-view {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  background: #080808;
+}
+
+.game-view:fullscreen {
+  width: 100%;
+  height: 100%;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  gap: 12px;
+  min-height: 60px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #191919;
+  background: #090909;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.control-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid #252525;
+  border-radius: 9px;
+  background: #141414;
+  color: #ccc;
+  transition: transform .18s ease, background .18s ease,
+              border-color .18s ease, color .18s ease;
+}
+
+.control-button:hover {
+  transform: translateY(-2px);
+  border-color: #484848;
+  background: #222;
+  color: #fff;
+}
+
+.control-button:active {
+  transform: scale(.9);
+}
+
+.control-button[aria-pressed="true"] {
+  border-color: #777;
+  color: #fff;
+}
+
+.control-button svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mute-slash {
+  opacity: 0;
+  transition: opacity .18s ease;
+}
+
+#muteButton[aria-pressed="true"] .mute-slash {
+  opacity: 1;
+}
+
+.viewer {
+  flex: 1;
+  min-height: 0;
+  background: #000;
+}
+
+iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* Screen transitions */
+
+.library,
+.game-view {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity .22s ease, transform .22s ease;
+}
+
+.screen-leaving {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+@media (max-width: 600px) {
+  .library {
+    padding: 45px 16px;
+  }
+
+  .library-header {
+    margin-bottom: 32px;
+  }
+
+  .game-list {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+  }
+
+  .game-card {
+    gap: 9px;
+    padding: 8px;
+  }
+
+  .topbar {
+    min-height: 54px;
+    padding: 7px 8px;
+  }
+
+  .controls {
+    gap: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
