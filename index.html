@@ -17,115 +17,177 @@
     :root {
       color-scheme: dark;
       font-family: system-ui, -apple-system, sans-serif;
-    }
-
-    body {
-      margin: 0;
       background: #080808;
       color: #f5f5f5;
     }
 
-    main {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      width: min(100%, 1400px);
-      height: 100vh;
-      height: 100dvh;
-      margin: 0 auto;
-      padding: 32px;
-      animation: enter .5s ease both;
-    }
-
-    header {
-      display: flex;
-      align-items: end;
-      justify-content: space-between;
-      gap: 16px;
-    }
-
-    h1 {
+    body {
       margin: 0;
-      font-size: 28px;
-      font-weight: 700;
-      letter-spacing: -.05em;
+      min-height: 100vh;
+      min-height: 100dvh;
     }
 
-    header p {
-      margin: 6px 0 0;
+    button {
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    button:focus-visible {
+      outline: 2px solid #ddd;
+      outline-offset: 3px;
+    }
+
+    /* Library */
+
+    .library {
+      width: 100%;
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding: 64px 28px;
+    }
+
+    .library-header {
+      margin: 0 auto 48px;
+      text-align: center;
+    }
+
+    .library-header h1 {
+      margin: 0;
+      font-size: clamp(32px, 5vw, 48px);
+      font-weight: 750;
+      letter-spacing: -.06em;
+    }
+
+    .library-header p {
+      margin: 10px 0 0;
       color: #777;
       font-size: 14px;
     }
 
     .game-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 16px;
+      width: min(100%, 1200px);
+      margin: 0 auto;
+    }
+
+    .game-card {
       display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .game-button {
-      padding: 10px 16px;
-      border: 1px solid #292929;
-      border-radius: 9px;
-      background: #151515;
-      color: #aaa;
-      font: inherit;
-      font-size: 14px;
-      cursor: pointer;
-      transition: transform .2s ease, background .2s ease,
-                  border-color .2s ease, color .2s ease;
-    }
-
-    .game-button:hover {
-      transform: translateY(-2px);
-      border-color: #505050;
-      background: #202020;
-      color: #fff;
-    }
-
-    .game-button:active {
-      transform: scale(.97);
-    }
-
-    .game-button.active {
-      border-color: #777;
-      background: #292929;
-      color: #fff;
-    }
-
-    .game-button:focus-visible {
-      outline: 2px solid #aaa;
-      outline-offset: 3px;
-    }
-
-    .viewer {
-      position: relative;
-      flex: 1;
-      min-height: 0;
-      overflow: hidden;
+      flex-direction: column;
+      gap: 12px;
+      min-width: 0;
+      padding: 10px;
       border: 1px solid #252525;
-      border-radius: 16px;
+      border-radius: 15px;
+      background: #111;
+      text-align: left;
+      transition: transform .2s ease, border-color .2s ease,
+                  background .2s ease;
+    }
+
+    .game-card:hover {
+      transform: translateY(-4px);
+      border-color: #505050;
+      background: #181818;
+    }
+
+    .game-card:active {
+      transform: scale(.98);
+    }
+
+    .icon-wrap {
+      display: grid;
+      width: 100%;
+      aspect-ratio: 1;
+      overflow: hidden;
+      place-items: center;
+      border-radius: 9px;
+      background: #1c1c1c;
+      color: #777;
+      font-size: 28px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .game-icon {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .game-name {
+      overflow: hidden;
+      padding: 0 3px 4px;
+      color: #ddd;
+      font-size: 14px;
+      font-weight: 600;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Game view */
+
+    .game-view {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      background: #080808;
+    }
+
+    .game-view:fullscreen {
+      width: 100%;
+      height: 100%;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      gap: 12px;
+      min-height: 60px;
+      padding: 10px 16px;
+      border-bottom: 1px solid #252525;
       background: #101010;
     }
 
-    .placeholder {
-      display: grid;
-      height: 100%;
-      place-content: center;
+    .controls {
+      display: flex;
+      align-items: center;
       gap: 8px;
-      padding: 24px;
-      text-align: center;
     }
 
-    .placeholder strong {
-      color: #aaa;
-      font-size: 15px;
-      font-weight: 600;
-    }
-
-    .placeholder span {
-      color: #666;
+    .control-button {
+      padding: 9px 13px;
+      border: 1px solid #303030;
+      border-radius: 9px;
+      background: #1a1a1a;
+      color: #ccc;
       font-size: 13px;
+      white-space: nowrap;
+      transition: background .2s ease, border-color .2s ease;
+    }
+
+    .control-button:hover {
+      border-color: #555;
+      background: #262626;
+      color: #fff;
+    }
+
+    .control-button[aria-pressed="true"] {
+      border-color: #777;
+      color: #fff;
+    }
+
+    .viewer {
+      flex: 1;
+      min-height: 0;
+      background: #000;
     }
 
     iframe {
@@ -133,38 +195,39 @@
       width: 100%;
       height: 100%;
       border: 0;
-      animation: enter .4s ease both;
-    }
-
-    @keyframes enter {
-      from {
-        opacity: 0;
-        transform: translateY(8px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
     }
 
     @media (max-width: 600px) {
-      main {
-        gap: 16px;
-        padding: 20px 14px;
+      .library {
+        padding: 45px 16px;
       }
 
-      h1 {
-        font-size: 24px;
+      .library-header {
+        margin-bottom: 32px;
       }
 
-      .game-button {
-        padding: 9px 13px;
-        font-size: 13px;
+      .game-list {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 10px;
       }
 
-      .viewer {
-        border-radius: 12px;
+      .game-card {
+        gap: 9px;
+        padding: 8px;
+      }
+
+      .topbar {
+        min-height: 54px;
+        padding: 8px;
+      }
+
+      .controls {
+        gap: 6px;
+      }
+
+      .control-button {
+        padding: 8px 9px;
+        font-size: 12px;
       }
     }
 
@@ -180,25 +243,46 @@
 </head>
 
 <body>
-  <main>
-    <header>
-      <div>
-        <h1>library</h1>
-        <p>pick a game and play</p>
-      </div>
+  <main id="library" class="library">
+    <header class="library-header">
+      <h1>library</h1>
+      <p>pick a game and play</p>
     </header>
 
     <div id="gameList" class="game-list"></div>
+  </main>
 
-    <div class="viewer">
-      <div id="placeholder" class="placeholder">
-        <strong>ready to play?</strong>
-        <span>select a game above</span>
+  <section id="gameView" class="game-view" aria-label="Game view" hidden>
+    <div class="topbar">
+      <div class="controls">
+        <button id="fullscreenButton" class="control-button" type="button">
+          fullscreen
+        </button>
+
+        <button
+          id="muteButton"
+          class="control-button"
+          type="button"
+          aria-pressed="false"
+        >
+          mute
+        </button>
       </div>
 
-      <iframe id="gameFrame" title="Game viewer" hidden></iframe>
+      <button id="backButton" class="control-button" type="button">
+        back to library
+      </button>
     </div>
-  </main>
+
+    <div class="viewer">
+      <iframe
+        id="gameFrame"
+        title="Game viewer"
+        allow="fullscreen; autoplay; gamepad"
+        allowfullscreen
+      ></iframe>
+    </div>
+  </section>
 
   <script>
     // Add more games here.
@@ -209,32 +293,163 @@
       { name: "minesweeper", path: "games/minesweeper/index.html" },
       { name: "pong", path: "games/pong/index.html" },
       { name: "reaction test", path: "games/reaction/index.html" },
-      { name: "minecraft 26.2", path: "games/eagler/index.html" }
+      { name: "minecraft 1.8", path: "games/eagler/index.html" }
     ];
 
-    const list = document.getElementById("gameList");
+    const library = document.getElementById("library");
+    const gameList = document.getElementById("gameList");
+    const gameView = document.getElementById("gameView");
     const frame = document.getElementById("gameFrame");
-    const placeholder = document.getElementById("placeholder");
+    const fullscreenButton = document.getElementById("fullscreenButton");
+    const muteButton = document.getElementById("muteButton");
+    const backButton = document.getElementById("backButton");
+
+    let muted = false;
+    let mediaObserver = null;
+    let lastGameButton = null;
+
+    function updateMuteButton() {
+      muteButton.textContent = muted ? "unmute" : "mute";
+      muteButton.setAttribute("aria-pressed", String(muted));
+    }
+
+    // This controls standard audio and video elements in same-origin games.
+    function applyMute() {
+      try {
+        const doc = frame.contentDocument;
+        if (!doc) return;
+
+        doc.querySelectorAll("audio, video").forEach(media => {
+          media.muted = muted;
+        });
+      } catch (error) {
+        // Cross-origin frames cannot be controlled by the parent page.
+      }
+    }
+
+    function observeGameMedia() {
+      if (mediaObserver) mediaObserver.disconnect();
+
+      try {
+        const doc = frame.contentDocument;
+        if (!doc || !doc.documentElement) return;
+
+        applyMute();
+
+        mediaObserver = new MutationObserver(() => {
+          if (muted) applyMute();
+        });
+
+        mediaObserver.observe(doc.documentElement, {
+          childList: true,
+          subtree: true
+        });
+      } catch (error) {
+        // The game may be cross-origin.
+      }
+    }
+
+    frame.addEventListener("load", observeGameMedia);
+
+    muteButton.addEventListener("click", () => {
+      muted = !muted;
+      updateMuteButton();
+      applyMute();
+    });
+
+    function openGame(game, button) {
+      lastGameButton = button;
+      library.hidden = true;
+      gameView.hidden = false;
+      frame.title = game.name;
+      frame.src = game.path;
+      backButton.focus();
+    }
+
+    async function returnToLibrary() {
+      if (document.fullscreenElement === gameView) {
+        try {
+          await document.exitFullscreen();
+        } catch (error) {
+          // Continue returning to the library if exiting fails.
+        }
+      }
+
+      if (mediaObserver) {
+        mediaObserver.disconnect();
+        mediaObserver = null;
+      }
+
+      // Unload the game so its audio and activity stop.
+      frame.removeAttribute("src");
+      gameView.hidden = true;
+      library.hidden = false;
+
+      if (lastGameButton) lastGameButton.focus();
+    }
+
+    backButton.addEventListener("click", returnToLibrary);
+
+    fullscreenButton.addEventListener("click", async () => {
+      try {
+        if (document.fullscreenElement === gameView) {
+          await document.exitFullscreen();
+        } else {
+          await gameView.requestFullscreen();
+        }
+      } catch (error) {
+        alert("Fullscreen isn't available in this browser.");
+      }
+    });
+
+    document.addEventListener("fullscreenchange", () => {
+      fullscreenButton.textContent =
+        document.fullscreenElement === gameView
+          ? "exit fullscreen"
+          : "fullscreen";
+    });
 
     games.forEach(game => {
       const button = document.createElement("button");
-      button.className = "game-button";
-      button.textContent = game.name;
+      button.type = "button";
+      button.className = "game-card";
+      button.setAttribute("aria-label", `Play ${game.name}`);
 
-      button.addEventListener("click", () => {
-        list.querySelectorAll("button").forEach(item => {
-          item.classList.remove("active");
-        });
+      const iconWrap = document.createElement("span");
+      iconWrap.className = "icon-wrap";
 
-        button.classList.add("active");
-        placeholder.hidden = true;
-        frame.hidden = false;
-        frame.title = game.name;
-        frame.src = game.path;
+      const icon = document.createElement("img");
+      icon.className = "game-icon";
+      icon.alt = "";
+      icon.loading = "lazy";
+
+      // games/snake/index.html becomes games/snake/icon.png.
+      icon.src = game.path.replace(/[^/]+$/, "icon.png");
+
+      let usingFallback = false;
+
+      icon.addEventListener("error", () => {
+        if (!usingFallback) {
+          usingFallback = true;
+          icon.src = "replacement.png";
+        } else {
+          // If both images are missing, show the game's first letter.
+          icon.remove();
+          iconWrap.textContent = game.name.charAt(0);
+        }
       });
 
-      list.appendChild(button);
+      const name = document.createElement("span");
+      name.className = "game-name";
+      name.textContent = game.name;
+
+      iconWrap.appendChild(icon);
+      button.append(iconWrap, name);
+      button.addEventListener("click", () => openGame(game, button));
+      gameList.appendChild(button);
     });
+
+    updateMuteButton();
   </script>
 </body>
 </html>
