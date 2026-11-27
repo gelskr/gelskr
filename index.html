@@ -9,39 +9,107 @@
 
   <style>
     #exitDialog {
-      border: 1px solid #555;
-      border-radius: 12px;
-      padding: 24px;
+      width: min(320px, calc(100% - 64px));
+      border: 1px solid #454545;
+      border-radius: 20px;
+      padding: 32px;
       background: #222;
-      color: white;
+      color: #fff;
       text-align: center;
       font-family: inherit;
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.45);
+      animation: dialog-in 180ms ease-out;
     }
 
     #exitDialog::backdrop {
-      background: rgba(0, 0, 0, 0.7);
+      background: rgba(0, 0, 0, 0.65);
+    }
+
+    #exitDialog h2 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    #exitDialog p {
+      margin: 10px 0 0;
+      color: #aaa;
+      font-size: 14px;
     }
 
     .exit-actions {
       display: flex;
       justify-content: center;
-      gap: 16px;
-      margin-top: 20px;
+      gap: 14px;
+      margin-top: 26px;
     }
 
     .exit-actions button {
-      width: 52px;
-      height: 52px;
-      border: 1px solid #777;
-      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      width: 54px;
+      height: 54px;
+      border: 1px solid #505050;
+      border-radius: 16px;
       background: #333;
-      color: white;
-      font-size: 24px;
+      color: #ddd;
       cursor: pointer;
+      transition: background 160ms ease, transform 160ms ease,
+                  border-color 160ms ease;
     }
 
     .exit-actions button:hover {
-      background: #555;
+      transform: translateY(-3px);
+    }
+
+    .exit-actions button:active {
+      transform: scale(0.95);
+    }
+
+    .exit-actions button:focus-visible {
+      outline: 2px solid white;
+      outline-offset: 3px;
+    }
+
+    .exit-actions .exit-cancel:hover {
+      background: #65383b;
+      border-color: #ad656a;
+    }
+
+    .exit-actions .exit-confirm:hover {
+      background: #315a43;
+      border-color: #5caa79;
+    }
+
+    .exit-actions svg {
+      width: 23px;
+      height: 23px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    @keyframes dialog-in {
+      from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.97);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #exitDialog {
+        animation: none;
+      }
+
+      .exit-actions button {
+        transition: none;
+      }
     }
   </style>
 </head>
@@ -119,23 +187,33 @@
 
   <!-- Exit confirmation -->
   <dialog id="exitDialog" aria-labelledby="exitTitle">
-    <h2 id="exitTitle">Are you sure you want to exit?</h2>
-    <p>Your game will close. Make sure you have saved your progress.</p>
+    <h2 id="exitTitle">are you sure?</h2>
+    <p>make sure you saved</p>
 
     <div class="exit-actions">
       <button
         id="cancelExit"
+        class="exit-cancel"
         type="button"
         aria-label="Cancel and return to game"
         title="Return to game"
-      >✕</button>
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 6l12 12M18 6L6 18"/>
+        </svg>
+      </button>
 
       <button
         id="confirmExit"
+        class="exit-confirm"
         type="button"
         aria-label="Confirm exit"
         title="Exit game"
-      >✓</button>
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M5 12l5 5L19 7"/>
+        </svg>
+      </button>
     </div>
   </dialog>
 
@@ -162,7 +240,7 @@
 
     // Return keyboard focus to Eaglercraft's canvas when possible.
     function focusGame() {
-      if (gameView.hidden) return;
+      if (gameView.hidden || exitDialog.open) return;
 
       frame.focus();
 
