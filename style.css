@@ -268,3 +268,8 @@ iframe {
     transition-duration: .01ms !important;
   }
 }
+
+/* Hide the toolbar while the game is fullscreen */
+.game-view:fullscreen .topbar {
+  display: none;
+}
