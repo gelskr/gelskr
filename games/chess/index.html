@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chess vs AI</title>
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 
   <style>
@@ -14,24 +13,33 @@
 
     :root {
       color-scheme: dark;
-      --background: #080808;
+      --bg: #080808;
       --panel: #2d2b29;
-      --light-square: #eeeed2;
-      --dark-square: #779556;
+      --panel-hover: #3a3734;
+      --light: #f0f0f0;
+      --dark: #555;
       --text: #f5f5f5;
-      --muted: #b8b8b8;
+      --muted: #aaa;
+      --accent: #779556;
     }
 
+    html,
     body {
       margin: 0;
-      min-height: 100vh;
-      min-height: 100dvh;
-      background: var(--background);
+      width: 100%;
+      min-height: 100%;
+      background: var(--bg);
       color: var(--text);
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
-    button, select {
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+
+    button,
+    select {
       font: inherit;
     }
 
@@ -54,61 +62,62 @@
     }
 
     .setup-card {
-      width: min(100%, 400px);
+      width: min(100%, 390px);
       padding: 28px;
-      border: 1px solid #292929;
-      border-radius: 16px;
+      border: 1px solid #242424;
+      border-radius: 14px;
       background: #111;
     }
 
     .setup-card h1 {
       margin: 0;
       font-size: 27px;
-      letter-spacing: -0.5px;
+      font-weight: 700;
+      letter-spacing: -0.6px;
     }
 
-    .setup-subtitle {
-      margin: 8px 0 28px;
+    .setup-card p {
+      margin: 8px 0 26px;
       color: var(--muted);
       font-size: 14px;
     }
 
-    .setup-field {
+    .field {
       display: grid;
-      gap: 9px;
-      margin-bottom: 20px;
+      gap: 8px;
+      margin-bottom: 19px;
     }
 
-    .setup-field label {
+    .field label {
       font-size: 13px;
       font-weight: 600;
     }
 
-    .setup-field select {
+    .field select {
       width: 100%;
-      padding: 13px 14px;
-      border: 1px solid #393939;
-      border-radius: 8px;
+      padding: 12px;
+      border: 1px solid #383838;
+      border-radius: 7px;
       background: #1b1b1b;
       color: var(--text);
     }
 
-    .play-button {
+    .primary-button {
       width: 100%;
-      margin-top: 8px;
+      margin-top: 7px;
       padding: 13px;
       border: 0;
-      border-radius: 8px;
-      background: var(--dark-square);
+      border-radius: 7px;
+      background: var(--accent);
       color: white;
       font-weight: 700;
     }
 
-    .play-button:hover {
+    .primary-button:hover {
       background: #89a867;
     }
 
-    /* Chess screen */
+    /* Game layout */
 
     #gameScreen {
       width: 100%;
@@ -122,33 +131,27 @@
     }
 
     .player-bar {
-      width: min(100%, 1160px);
-      min-height: 46px;
+      width: min(100%, 1100px);
+      min-height: 42px;
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 5px 12px;
+      padding: 4px 12px;
       background: var(--panel);
       flex-shrink: 0;
     }
 
     .player-icon {
-      width: 36px;
-      height: 36px;
+      width: 32px;
+      height: 32px;
       display: grid;
       place-items: center;
       flex-shrink: 0;
       border-radius: 4px;
-      background: #44413e;
-      color: #8e8a86;
+      background: #45423f;
+      color: #bdbbb8;
       font-family: "Segoe UI Symbol", "DejaVu Sans", serif;
-      font-size: 27px;
-    }
-
-    .player-info {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
+      font-size: 24px;
     }
 
     .player-name {
@@ -157,17 +160,17 @@
     }
 
     .player-detail {
+      margin-top: 1px;
       color: #c1bfbc;
       font-size: 11px;
     }
 
     #status {
-      width: min(100%, 1160px);
-      min-height: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 4px 10px;
+      width: min(100%, 1100px);
+      min-height: 26px;
+      display: grid;
+      place-items: center;
+      padding: 3px 8px;
       color: #d1d1d1;
       font-size: 12px;
       text-align: center;
@@ -175,8 +178,7 @@
     }
 
     #board {
-      width: min(100vw, calc(100dvh - 130px));
-      max-width: 1160px;
+      width: min(100vw, 1100px, calc(100dvh - 145px));
       aspect-ratio: 1;
       display: grid;
       grid-template-columns: repeat(8, minmax(0, 1fr));
@@ -202,39 +204,39 @@
     }
 
     .square.light {
-      background: var(--light-square);
+      background: var(--light);
     }
 
     .square.dark {
-      background: var(--dark-square);
+      background: var(--dark);
     }
 
     .square.selected {
-      background: #baca44;
+      background: #9cae62;
     }
 
     .square.last-move.light {
-      background: #f5f682;
+      background: #d8d8b8;
     }
 
     .square.last-move.dark {
-      background: #baca44;
+      background: #718b50;
     }
 
     .square:focus-visible {
       outline: 2px solid #fff;
       outline-offset: -3px;
-      z-index: 2;
+      z-index: 3;
     }
 
-    /* Piece styling */
+    /* Filled silhouettes, colored by side */
 
     .piece {
+      display: block;
       position: relative;
       z-index: 1;
-      display: block;
       font-family: "Segoe UI Symbol", "DejaVu Sans", "Noto Sans Symbols 2", serif;
-      font-size: clamp(28px, 8.2vw, 82px);
+      font-size: clamp(26px, 7.5vw, 76px);
       line-height: 1;
       pointer-events: none;
       transform: translateY(-1%);
@@ -242,18 +244,14 @@
 
     .white-piece {
       color: #fff;
-      -webkit-text-stroke: 1px #555;
-      text-shadow:
-        0 1px 0 #555,
-        0 2px 1px #555;
+      -webkit-text-stroke: 0.6px #777;
+      filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.55));
     }
 
     .black-piece {
-      color: #555;
-      -webkit-text-stroke: 1px #242424;
-      text-shadow:
-        0 1px 0 #242424,
-        0 2px 1px #242424;
+      color: #292929;
+      -webkit-text-stroke: 0.7px #111;
+      filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
     }
 
     .coordinate {
@@ -261,7 +259,7 @@
       z-index: 2;
       left: 4px;
       top: 3px;
-      font-size: clamp(10px, 2vw, 17px);
+      font-size: clamp(10px, 1.5vw, 15px);
       font-weight: 700;
       line-height: 1;
       pointer-events: none;
@@ -275,20 +273,20 @@
     }
 
     .light .coordinate {
-      color: var(--dark-square);
+      color: #666;
     }
 
     .dark .coordinate {
-      color: var(--light-square);
+      color: #f0f0f0;
     }
 
     .legal-dot {
       position: absolute;
       z-index: 0;
-      width: 25%;
+      width: 24%;
       aspect-ratio: 1;
       border-radius: 50%;
-      background: rgba(0, 0, 0, 0.24);
+      background: rgba(0, 0, 0, 0.25);
       pointer-events: none;
     }
 
@@ -296,34 +294,34 @@
       position: absolute;
       z-index: 0;
       inset: 5%;
-      border: clamp(3px, 0.7vw, 7px) solid rgba(0, 0, 0, 0.24);
+      border: clamp(3px, 0.6vw, 6px) solid rgba(0, 0, 0, 0.25);
       border-radius: 50%;
       pointer-events: none;
     }
 
     .game-footer {
-      width: min(100%, 1160px);
-      min-height: 38px;
+      width: min(100%, 1100px);
+      min-height: 36px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      padding: 5px 12px;
+      padding: 4px 10px;
       background: var(--panel);
       flex-shrink: 0;
     }
 
     .footer-button {
-      padding: 7px 12px;
+      padding: 7px 11px;
       border: 1px solid #494643;
       border-radius: 6px;
-      background: #3a3734;
+      background: #383532;
       color: #f5f5f5;
       font-size: 12px;
     }
 
     .footer-button:hover {
-      background: #4a4642;
+      background: var(--panel-hover);
     }
 
     #gameMessage {
@@ -338,18 +336,18 @@
       }
 
       #board {
-        width: min(100vw, calc(100dvh - 120px));
+        width: min(100vw, calc(100dvh - 125px));
       }
 
       .player-bar {
-        min-height: 40px;
-        padding: 4px 8px;
+        min-height: 38px;
+        padding: 3px 8px;
       }
 
       .player-icon {
-        width: 30px;
-        height: 30px;
-        font-size: 23px;
+        width: 29px;
+        height: 29px;
+        font-size: 22px;
       }
 
       .coordinate {
@@ -363,8 +361,8 @@
       }
 
       .game-footer {
-        min-height: 34px;
-        padding: 4px 8px;
+        min-height: 32px;
+        padding: 3px 6px;
       }
 
       .footer-button {
@@ -374,14 +372,14 @@
 
     @media (max-height: 560px) and (orientation: landscape) {
       .player-bar {
-        min-height: 28px;
+        min-height: 27px;
         padding: 2px 8px;
       }
 
       .player-icon {
-        width: 23px;
-        height: 23px;
-        font-size: 18px;
+        width: 22px;
+        height: 22px;
+        font-size: 17px;
       }
 
       .player-detail {
@@ -389,12 +387,11 @@
       }
 
       #status {
-        min-height: 22px;
-        padding: 2px 8px;
+        min-height: 20px;
       }
 
       #board {
-        width: min(calc(100dvh - 70px), 100vw);
+        width: min(calc(100dvh - 92px), 100vw);
       }
 
       .game-footer {
@@ -413,9 +410,9 @@
   <main id="setupScreen">
     <section class="setup-card">
       <h1>Chess vs AI</h1>
-      <p class="setup-subtitle">Choose your settings, then play.</p>
+      <p>Choose your settings, then play.</p>
 
-      <div class="setup-field">
+      <div class="field">
         <label for="difficulty">AI difficulty</label>
         <select id="difficulty">
           <option value="easy">Easy</option>
@@ -424,7 +421,7 @@
         </select>
       </div>
 
-      <div class="setup-field">
+      <div class="field">
         <label for="playerColor">Play as</label>
         <select id="playerColor">
           <option value="w">White</option>
@@ -433,34 +430,33 @@
         </select>
       </div>
 
-      <button class="play-button" id="playButton" type="button">Play</button>
+      <button class="primary-button" id="playButton" type="button">Play</button>
     </section>
   </main>
 
   <main id="gameScreen" hidden>
     <div class="player-bar">
       <div class="player-icon" aria-hidden="true">♟</div>
-      <div class="player-info">
-        <span class="player-name">Opponent</span>
-        <span class="player-detail" id="opponentDetail">AI</span>
+      <div>
+        <div class="player-name">Opponent</div>
+        <div class="player-detail" id="opponentDetail">Medium</div>
       </div>
     </div>
 
     <div id="status" aria-live="polite"></div>
-
     <div id="board" aria-label="Chess board"></div>
 
     <div class="player-bar">
       <div class="player-icon" aria-hidden="true">♟</div>
-      <div class="player-info">
-        <span class="player-name">Player</span>
-        <span class="player-detail" id="playerDetail">White</span>
+      <div>
+        <div class="player-name">Player</div>
+        <div class="player-detail" id="playerDetail">White</div>
       </div>
     </div>
 
     <div class="game-footer">
       <button class="footer-button" id="newGameButton" type="button">New game</button>
-      <span id="gameMessage">Click a piece, then a square.</span>
+      <span id="gameMessage">Select a piece, then a square.</span>
       <button class="footer-button" id="settingsButton" type="button">Settings</button>
     </div>
   </main>
@@ -477,7 +473,7 @@
     const gameMessage = document.getElementById("gameMessage");
 
     if (typeof Chess === "undefined") {
-      document.querySelector(".setup-subtitle").textContent =
+      document.querySelector(".setup-card p").textContent =
         "Could not load chess.js. Check your internet connection and reload.";
       throw new Error("chess.js failed to load");
     }
@@ -485,10 +481,14 @@
     const game = new Chess();
     const files = "abcdefgh";
 
-    // Standard starting position: queen on d-file, king on e-file.
-    const symbols = {
-      w: { k: "♔", q: "♕", r: "♖", b: "♗", n: "♘", p: "♙" },
-      b: { k: "♚", q: "♛", r: "♜", b: "♝", n: "♞", p: "♟" }
+    // Use the filled black-piece glyphs for both sides, then color them.
+    const pieces = {
+      k: "♚",
+      q: "♛",
+      r: "♜",
+      b: "♝",
+      n: "♞",
+      p: "♟"
     };
 
     const values = {
@@ -570,12 +570,11 @@
         ? game.moves({ square: selectedSquare, verbose: true })
         : [];
 
-      // White stays at the bottom.
+      // Standard board orientation: White at the bottom.
       const ranks = [8, 7, 6, 5, 4, 3, 2, 1];
-      const boardFiles = [...files];
 
       for (const rank of ranks) {
-        for (const file of boardFiles) {
+        for (const file of [...files]) {
           const square = file + rank;
           const piece = game.get(square);
           const legalMove = legalMoves.find(move => move.to === square);
@@ -603,7 +602,7 @@
             const pieceElement = document.createElement("span");
             pieceElement.className =
               "piece " + (piece.color === "w" ? "white-piece" : "black-piece");
-            pieceElement.textContent = symbols[piece.color][piece.type];
+            pieceElement.textContent = pieces[piece.type];
             button.appendChild(pieceElement);
           }
 
@@ -653,7 +652,6 @@
         if (move) {
           lastMove = { from: move.from, to: move.to };
           selectedSquare = null;
-          gameMessage.textContent = "Click a piece, then a square.";
           scheduleAiMove();
           return;
         }
@@ -676,7 +674,9 @@
       renderBoard();
 
       const difficulty = difficultyElement.value;
-      const waitTime = difficulty === "easy"
+
+      // Easy: 2–5 seconds. Medium: 5–12. Hard: 10–20.
+      const delay = difficulty === "easy"
         ? 2000 + Math.random() * 3000
         : difficulty === "medium"
           ? 5000 + Math.random() * 7000
@@ -685,7 +685,7 @@
       setTimeout(() => {
         if (version !== gameVersion || game.game_over()) return;
         makeAiMove();
-      }, waitTime);
+      }, delay);
     }
 
     // Positive scores favor Black; negative scores favor White.
