@@ -273,3 +273,20 @@ iframe {
 .game-view:fullscreen .topbar {
   display: none;
 }
+
+/* Remove the white outline around the game frame */
+.game-view,
+.viewer,
+#gameFrame {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+#gameFrame:focus,
+#gameFrame:focus-visible,
+#gameFrame:active {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+}
