@@ -103,6 +103,31 @@
         transition: none;
       }
     }
+
+    /* Remove the white outline around the game frame. */
+    #gameFrame:focus {
+      outline: none;
+    }
+
+    /* Loading text displayed over the black game background. */
+    .loading-label {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: #888;
+      font-size: 16px;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .viewer {
+      position: relative;
+    }
+
+    .loading-label[hidden] {
+      display: none;
+    }
   </style>
 </head>
 
@@ -168,6 +193,8 @@
     </div>
 
     <div class="viewer">
+      <div id="loadingLabel" class="loading-label" hidden>loading...</div>
+
       <iframe
         id="gameFrame"
         title="Game viewer"
@@ -212,15 +239,16 @@
 
   <script>
     const games = [
-  { name: "minecraft", path: "games/eagler/index.html" },
-  { name: "geometry dash", path: "games/geometry/index.html" },
-  { name: "flappy bird", path: "games/flappybird/index.html" }
-];
+      { name: "minecraft", path: "games/eagler/index.html" },
+      { name: "geometry dash", path: "games/geometry/index.html" },
+      { name: "flappy bird", path: "games/flappybird/index.html" }
+    ];
 
     const library = document.getElementById("library");
     const gameList = document.getElementById("gameList");
     const gameView = document.getElementById("gameView");
     const frame = document.getElementById("gameFrame");
+    const loadingLabel = document.getElementById("loadingLabel");
     const fullscreenButton = document.getElementById("fullscreenButton");
     const muteButton = document.getElementById("muteButton");
     const backButton = document.getElementById("backButton");
@@ -340,6 +368,9 @@
       gameView.hidden = false;
 
       frame.title = game.name;
+
+      // Show loading text before starting the game.
+      loadingLabel.hidden = false;
       frame.src = game.path;
 
       fadeIn(gameView);
@@ -389,7 +420,9 @@
       switchingScreen = false;
     }
 
+    // Hide loading text once the game finishes loading.
     frame.addEventListener("load", () => {
+      loadingLabel.hidden = true;
       observeGameMedia();
       focusGame();
     });
