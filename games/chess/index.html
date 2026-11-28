@@ -1,197 +1,506 @@
 <!DOCTYPE html>
+
+
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chess vs AI</title>
 
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+
 
   <style>
     * {
       box-sizing: border-box;
     }
 
+    :root {
+      color-scheme: dark;
+      --background: #080808;
+      --panel: #2d2b29;
+      --light-square: #eeeed2;
+      --dark-square: #779556;
+      --text: #f5f5f5;
+      --muted: #b8b8b8;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 20px;
-      background: #171a21;
-      color: #f2f2f2;
-      font-family: system-ui, sans-serif;
+      min-height: 100dvh;
+      background: var(--background);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
-    main {
-      width: min(100%, 520px);
-    }
-
-    h1 {
-      margin: 0 0 8px;
-    }
-
-    .subtitle {
-      color: #b7bdc9;
-      margin: 0 0 18px;
-    }
-
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: end;
-      margin-bottom: 14px;
-    }
-
-    label {
-      display: grid;
-      gap: 5px;
-      font-size: 14px;
-    }
-
-    select,
-    .new-game {
-      padding: 9px 12px;
-      border: 1px solid #596170;
-      border-radius: 6px;
-      background: #292f3b;
-      color: white;
+    button,
+    select {
       font: inherit;
     }
 
-    .new-game {
+    button {
       cursor: pointer;
     }
 
-    .new-game:hover {
-      background: #394253;
+    [hidden] {
+      display: none !important;
+    }
+
+    /* Setup screen */
+
+    #setupScreen {
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .setup-card {
+      width: min(100%, 420px);
+      padding: 28px;
+      border: 1px solid #292929;
+      border-radius: 18px;
+      background: #111;
+    }
+
+    .setup-card h1 {
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: -0.5px;
+    }
+
+    .setup-subtitle {
+      margin: 8px 0 28px;
+      color: var(--muted);
+    }
+
+    .setup-field {
+      display: grid;
+      gap: 9px;
+      margin-bottom: 20px;
+    }
+
+    .setup-field label {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .setup-field select {
+      width: 100%;
+      padding: 13px 14px;
+      border: 1px solid #393939;
+      border-radius: 9px;
+      background: #1b1b1b;
+      color: var(--text);
+    }
+
+    .play-button {
+      width: 100%;
+      margin-top: 8px;
+      padding: 14px;
+      border: 0;
+      border-radius: 9px;
+      background: #779556;
+      color: white;
+      font-weight: 700;
+      transition: background 150ms ease, transform 150ms ease;
+    }
+
+    .play-button:hover {
+      background: #89a867;
+    }
+
+    .play-button:active {
+      transform: scale(0.99);
+    }
+
+    /* Game screen */
+
+    #gameScreen {
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      overflow: hidden;
+      padding: 0;
+    }
+
+    .player-bar {
+      width: min(100%, 1160px);
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 12px;
+      background: var(--panel);
+      flex-shrink: 0;
+    }
+
+    .player-bar.opponent {
+      border-radius: 0;
+    }
+
+    .player-bar.player {
+      border-radius: 0;
+    }
+
+    .player-icon {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      border-radius: 4px;
+      background: #44413e;
+      color: #8e8a86;
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .player-info {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .player-name {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .player-detail {
+      color: #c1bfbc;
+      font-size: 12px;
     }
 
     #status {
-      min-height: 48px;
-      padding: 12px;
-      margin-bottom: 12px;
-      border-radius: 6px;
-      background: #292f3b;
+      width: min(100%, 1160px);
+      padding: 6px 12px;
+      color: #d1d1d1;
+      font-size: 13px;
+      text-align: center;
+      flex-shrink: 0;
     }
 
     #board {
-      display: grid;
-      grid-template-columns: repeat(8, 1fr);
+      width: min(100vw, calc(100dvh - 112px));
+      max-width: 1160px;
       aspect-ratio: 1;
-      border: 4px solid #0e1014;
-      border-radius: 4px;
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      grid-template-rows: repeat(8, minmax(0, 1fr));
       overflow: hidden;
+      flex-shrink: 0;
+      border-radius: 2px;
+      touch-action: manipulation;
     }
 
     .square {
       position: relative;
       display: grid;
       place-items: center;
+      min-width: 0;
+      min-height: 0;
       padding: 0;
       border: 0;
-      cursor: pointer;
-      font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", serif;
-      font-size: clamp(28px, 8vw, 52px);
+      border-radius: 0;
       line-height: 1;
       user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    .light {
-      background: #e8d5ad;
+    .square.light {
+      background: var(--light-square);
     }
 
-    .dark {
-      background: #77915f;
+    .square.dark {
+      background: var(--dark-square);
     }
 
     .square.selected {
-      background: #efd35a;
+      background: #baca44;
     }
 
-    .square.legal::after {
-      content: "";
-      position: absolute;
-      width: 24%;
-      height: 24%;
-      border-radius: 50%;
-      background: rgba(0, 0, 0, 0.25);
-      pointer-events: none;
+    .square.last-move.light {
+      background: #f5f682;
     }
 
-    .square.capture::after {
-      content: "";
-      position: absolute;
-      inset: 5%;
-      border: 5px solid rgba(0, 0, 0, 0.25);
-      border-radius: 50%;
+    .square.last-move.dark {
+      background: #baca44;
+    }
+
+    .square:focus-visible {
+      outline: 3px solid #f5f5f5;
+      outline-offset: -4px;
+      z-index: 2;
+    }
+
+    .piece {
+      position: relative;
+      z-index: 1;
+      display: block;
+      font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", "DejaVu Sans", serif;
+      font-size: clamp(24px, 8.2vw, 78px);
+      line-height: 1;
       pointer-events: none;
     }
 
     .white-piece {
       color: #fff;
-      text-shadow: 0 1px 2px #000, 0 0 3px #000;
+      -webkit-text-stroke: 1px #555;
+      text-shadow: 0 2px 1px #555;
     }
 
     .black-piece {
-      color: #171717;
-      text-shadow: 0 1px 1px #ddd;
+      color: #555;
+      -webkit-text-stroke: 1px #242424;
+      text-shadow: 0 2px 1px #222;
     }
 
-    .hint {
-      color: #b7bdc9;
-      font-size: 14px;
-      line-height: 1.5;
+    .square-coordinate {
+      position: absolute;
+      z-index: 2;
+      left: 5px;
+      top: 4px;
+      font-size: clamp(10px, 2.2vw, 18px);
+      font-weight: 700;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .square-coordinate.file {
+      left: auto;
+      top: auto;
+      right: 5px;
+      bottom: 4px;
+    }
+
+    .light .square-coordinate {
+      color: var(--dark-square);
+    }
+
+    .dark .square-coordinate {
+      color: var(--light-square);
+    }
+
+    .legal-dot {
+      position: absolute;
+      z-index: 0;
+      width: 25%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.24);
+      pointer-events: none;
+    }
+
+    .capture-ring {
+      position: absolute;
+      z-index: 0;
+      inset: 5%;
+      border: clamp(3px, 0.7vw, 7px) solid rgba(0, 0, 0, 0.24);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .game-footer {
+      width: min(100%, 1160px);
+      min-height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 5px 12px;
+      background: var(--panel);
+      flex-shrink: 0;
+    }
+
+    .footer-button {
+      padding: 7px 12px;
+      border: 1px solid #494643;
+      border-radius: 6px;
+      background: #3a3734;
+      color: #f5f5f5;
+      font-size: 12px;
+    }
+
+    .footer-button:hover {
+      background: #4a4642;
+    }
+
+    #gameMessage {
+      color: #c7c4c0;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    @media (max-width: 520px) {
+      .setup-card {
+        padding: 22px;
+      }
+
+      .player-bar {
+        min-height: 42px;
+        padding: 4px 8px;
+      }
+
+      .player-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 24px;
+      }
+
+      #board {
+        width: min(100vw, calc(100dvh - 100px));
+      }
+
+      .square-coordinate {
+        left: 3px;
+        top: 3px;
+      }
+
+      .square-coordinate.file {
+        right: 3px;
+        bottom: 3px;
+      }
+
+      .game-footer {
+        min-height: 34px;
+        padding: 4px 8px;
+      }
+    }
+
+    @media (max-height: 560px) and (orientation: landscape) {
+      .player-bar {
+        min-height: 30px;
+        padding: 2px 8px;
+      }
+
+      .player-icon {
+        width: 24px;
+        height: 24px;
+        font-size: 18px;
+      }
+
+      .player-name {
+        font-size: 12px;
+      }
+
+      .player-detail {
+        display: none;
+      }
+
+      #status {
+        padding: 2px 8px;
+        font-size: 11px;
+      }
+
+      #board {
+        width: min(calc(100dvh - 76px), 100vw);
+      }
+
+      .game-footer {
+        min-height: 24px;
+        padding: 2px 8px;
+      }
+
+      .footer-button {
+        padding: 3px 8px;
+      }
     }
   </style>
+
+
 </head>
 
+
 <body>
-  <main>
-    <h1>Chess vs AI</h1>
-    <p class="subtitle">Choose your color and difficulty, then play!</p>
+  <!-- First screen: choose settings -->
+  <main id="setupScreen">
+    <section class="setup-card">
+      <h1>Chess vs AI</h1>
+      <p class="setup-subtitle">Choose your settings, then play.</p>
 
-    <div class="controls">
-      <label>
-        AI difficulty
-        <select id="difficulty">
-          <option value="easy">Easy — roughly 400</option>
-          <option value="medium" selected>Medium — roughly 1000</option>
-          <option value="hard">Hard — stronger play</option>
-        </select>
-      </label>
 
-      <label>
-        Play as
-        <select id="playerColor">
-          <option value="w">White</option>
-          <option value="b">Black</option>
-          <option value="random">Random (50/50)</option>
-        </select>
-      </label>
+<div class="setup-field">
+<label for="difficulty">AI difficulty</label>
+<select id="difficulty">
+<option value="easy">Easy</option>
+<option value="medium" selected>Medium</option>
+<option value="hard">Hard</option>
+</select>
+</div>
 
-      <button class="new-game" id="newGame">New game</button>
-    </div>
+<div class="setup-field">
+<label for="playerColor">Play as</label>
+<select id="playerColor">
+<option value="w">White</option>
+<option value="b">Black</option>
+<option value="random">Random</option>
+</select>
+</div>
 
-    <div id="status" aria-live="polite"></div>
-    <div id="board" aria-label="Chess board"></div>
+<button class="play-button" id="playButton" type="button">Play</button>
+</section>
 
-    <p class="hint">
-      Click a piece, then click a highlighted square. Pawns promote to queens.
-      Changing a setting starts a new game.
-    </p>
   </main>
 
+
+  <!-- Game screen: board fills the available height -->
+
+
+  <main id="gameScreen" hidden>
+    <div class="player-bar opponent">
+      <div class="player-icon" aria-hidden="true">♟</div>
+      <div class="player-info">
+        <span class="player-name">Opponent</span>
+        <span class="player-detail" id="opponentDetail">AI</span>
+      </div>
+    </div>
+
+
+<div id="status" aria-live="polite">Your turn</div>
+
+<div id="board" aria-label="Chess board"></div>
+
+<div class="player-bar player">
+<div class="player-icon" aria-hidden="true">♟</div>
+<div class="player-info">
+<span class="player-name">Player</span>
+<span class="player-detail" id="playerDetail">White</span>
+</div>
+</div>
+
+<div class="game-footer">
+<button class="footer-button" id="newGameButton" type="button">New game</button>
+<span id="gameMessage">Click a piece, then a square.</span>
+<button class="footer-button" id="settingsButton" type="button">Settings</button>
+</div>
+
+  </main>
+
+
   <script>
+    const setupScreen = document.getElementById("setupScreen");
+    const gameScreen = document.getElementById("gameScreen");
     const boardElement = document.getElementById("board");
     const statusElement = document.getElementById("status");
     const difficultyElement = document.getElementById("difficulty");
     const colorElement = document.getElementById("playerColor");
+    const opponentDetail = document.getElementById("opponentDetail");
+    const playerDetail = document.getElementById("playerDetail");
+    const gameMessage = document.getElementById("gameMessage");
 
     if (typeof Chess === "undefined") {
-      statusElement.textContent =
-        "Could not load the chess library. Check your internet connection and reload.";
+      document.querySelector(".setup-subtitle").textContent =
+        "Could not load chess.js. Check your internet connection and reload.";
       throw new Error("chess.js failed to load");
     }
 
@@ -213,38 +522,75 @@
     };
 
     let playerColor = "w";
-    let selected = null;
+    let selectedSquare = null;
     let thinking = false;
     let gameVersion = 0;
+    let lastMove = null;
 
-    function updateStatus() {
-      const colorName = playerColor === "w" ? "White" : "Black";
+    function startGame() {
+      gameVersion++;
+      game.reset();
 
-      if (game.in_checkmate()) {
-        statusElement.textContent =
-          game.turn() === playerColor
-            ? "Checkmate! The AI wins."
-            : "Checkmate! You win!";
-      } else if (game.in_draw()) {
-        statusElement.textContent = "Draw!";
-      } else if (thinking) {
-        statusElement.textContent = `You are ${colorName}. AI is thinking…`;
-      } else {
-        statusElement.textContent =
-          `You are ${colorName}. ` +
-          (game.turn() === playerColor ? "Your turn" : "AI's turn") +
-          (game.in_check() ? " — check!" : "");
+      selectedSquare = null;
+      thinking = false;
+      lastMove = null;
+
+      playerColor = colorElement.value === "random"
+        ? (Math.random() < 0.5 ? "w" : "b")
+        : colorElement.value;
+
+      setupScreen.hidden = true;
+      gameScreen.hidden = false;
+
+      playerDetail.textContent = playerColor === "w" ? "White" : "Black";
+      opponentDetail.textContent =
+        difficultyElement.options[difficultyElement.selectedIndex].text;
+
+      renderBoard();
+
+      if (game.turn() !== playerColor) {
+        scheduleAiMove();
       }
     }
 
-    function render() {
+    function returnToSettings() {
+      gameVersion++;
+      thinking = false;
+      setupScreen.hidden = false;
+      gameScreen.hidden = true;
+    }
+
+    function updateStatus() {
+      if (game.in_checkmate()) {
+        statusElement.textContent =
+          game.turn() === playerColor
+            ? "Checkmate — the AI wins."
+            : "Checkmate — you win!";
+        return;
+      }
+
+      if (game.in_draw()) {
+        statusElement.textContent = "Draw!";
+        return;
+      }
+
+      if (thinking) {
+        statusElement.textContent = "AI is thinking…";
+        return;
+      }
+
+      const turnText = game.turn() === playerColor ? "Your turn" : "AI's turn";
+      statusElement.textContent =
+        turnText + (game.in_check() ? " — check!" : "");
+    }
+
+    function renderBoard() {
       boardElement.innerHTML = "";
 
-      const legalMoves = selected
-        ? game.moves({ square: selected, verbose: true })
+      const legalMoves = selectedSquare
+        ? game.moves({ square: selectedSquare, verbose: true })
         : [];
 
-      // Put the player's pieces at the bottom.
       const ranks = playerColor === "w"
         ? [8, 7, 6, 5, 4, 3, 2, 1]
         : [1, 2, 3, 4, 5, 6, 7, 8];
@@ -257,19 +603,47 @@
         for (const file of boardFiles) {
           const square = file + rank;
           const piece = game.get(square);
-          const legal = legalMoves.some(move => move.to === square);
+          const legalMove = legalMoves.find(move => move.to === square);
           const button = document.createElement("button");
 
           button.type = "button";
           button.className = "square " +
             ((files.indexOf(file) + rank) % 2 === 0 ? "dark" : "light");
 
-          if (square === selected) {
+          if (square === selectedSquare) {
             button.classList.add("selected");
           }
 
-          if (legal) {
-            button.classList.add(piece ? "capture" : "legal");
+          if (lastMove && (square === lastMove.from || square === lastMove.to)) {
+            button.classList.add("last-move");
+          }
+
+          if (legalMove) {
+            const marker = document.createElement("span");
+            marker.className = piece ? "capture-ring" : "legal-dot";
+            button.appendChild(marker);
+          }
+
+          if (piece) {
+            const pieceElement = document.createElement("span");
+            pieceElement.className =
+              "piece " + (piece.color === "w" ? "white-piece" : "black-piece");
+            pieceElement.textContent = symbols[piece.color][piece.type];
+            button.appendChild(pieceElement);
+          }
+
+          if (file === boardFiles[0]) {
+            const rankLabel = document.createElement("span");
+            rankLabel.className = "square-coordinate";
+            rankLabel.textContent = rank;
+            button.appendChild(rankLabel);
+          }
+
+          if (rank === ranks[ranks.length - 1]) {
+            const fileLabel = document.createElement("span");
+            fileLabel.className = "square-coordinate file";
+            fileLabel.textContent = file;
+            button.appendChild(fileLabel);
           }
 
           button.setAttribute(
@@ -279,16 +653,7 @@
               : "")
           );
 
-          if (piece) {
-            const span = document.createElement("span");
-            span.className = piece.color === "w"
-              ? "white-piece"
-              : "black-piece";
-            span.textContent = symbols[piece.color][piece.type];
-            button.appendChild(span);
-          }
-
-          button.addEventListener("click", () => handleSquare(square));
+          button.addEventListener("click", () => handleSquareClick(square));
           boardElement.appendChild(button);
         }
       }
@@ -296,49 +661,53 @@
       updateStatus();
     }
 
-    function scheduleAiMove() {
-      if (game.game_over() || game.turn() === playerColor) {
-        render();
-        return;
-      }
-
-      thinking = true;
-      const version = gameVersion;
-      render();
-
-      setTimeout(() => {
-        if (version !== gameVersion) return;
-        makeAiMove();
-      }, 50);
-    }
-
-    function handleSquare(square) {
+    function handleSquareClick(square) {
       if (thinking || game.game_over() || game.turn() !== playerColor) {
         return;
       }
 
-      const piece = game.get(square);
+      const clickedPiece = game.get(square);
 
-      if (selected) {
+      if (selectedSquare) {
         const move = game.move({
-          from: selected,
+          from: selectedSquare,
           to: square,
           promotion: "q"
         });
 
         if (move) {
-          selected = null;
+          lastMove = { from: move.from, to: move.to };
+          selectedSquare = null;
+          gameMessage.textContent = "Click a piece, then a square.";
           scheduleAiMove();
           return;
         }
       }
 
-      selected = piece && piece.color === playerColor ? square : null;
-      render();
+      selectedSquare =
+        clickedPiece && clickedPiece.color === playerColor ? square : null;
+
+      renderBoard();
     }
 
-    // Positive scores favor Black; negative scores favor White.
-    function evaluate() {
+    function scheduleAiMove() {
+      if (game.game_over() || game.turn() === playerColor) {
+        renderBoard();
+        return;
+      }
+
+      thinking = true;
+      const version = gameVersion;
+      renderBoard();
+
+      setTimeout(() => {
+        if (version !== gameVersion) return;
+        makeAiMove();
+      }, 60);
+    }
+
+    // Scores are positive for Black and negative for White.
+    function evaluatePosition() {
       if (game.in_checkmate()) {
         return game.turn() === "w" ? 100000 : -100000;
       }
@@ -354,8 +723,8 @@
           if (!piece) continue;
 
           let value = values[piece.type];
-          const center = 3.5 -
-            (Math.abs(3.5 - row) + Math.abs(3.5 - col)) / 2;
+          const center =
+            3.5 - (Math.abs(3.5 - row) + Math.abs(3.5 - col)) / 2;
 
           if (piece.type === "n" || piece.type === "b") {
             value += center * 12;
@@ -373,7 +742,7 @@
       return score;
     }
 
-    function orderedMoves() {
+    function getOrderedMoves() {
       return game.moves({ verbose: true }).sort((a, b) => {
         const priority = move =>
           (move.captured ? values[move.captured] * 10 - values[move.piece] : 0) +
@@ -385,13 +754,13 @@
 
     function minimax(depth, alpha, beta) {
       if (depth === 0 || game.game_over()) {
-        return evaluate();
+        return evaluatePosition();
       }
 
       const maximizing = game.turn() === "b";
       let best = maximizing ? -Infinity : Infinity;
 
-      for (const move of orderedMoves()) {
+      for (const move of getOrderedMoves()) {
         game.move(move);
         const score = minimax(depth - 1, alpha, beta);
         game.undo();
@@ -412,72 +781,61 @@
 
     function makeAiMove() {
       const difficulty = difficultyElement.value;
-      const moves = orderedMoves();
+      const moves = getOrderedMoves();
 
       if (!moves.length) {
         thinking = false;
-        render();
+        renderBoard();
         return;
       }
 
-      // Easy sometimes chooses a random legal move.
       if (difficulty === "easy" && Math.random() < 0.55) {
         game.move(moves[Math.floor(Math.random() * moves.length)]);
       } else {
-        const depth = difficulty === "hard"
-          ? 3
-          : difficulty === "medium"
-            ? 2
-            : 1;
-
+        const depth = difficulty === "hard" ? 3 : difficulty === "medium" ? 2 : 1;
         const aiIsBlack = game.turn() === "b";
-        const scored = [];
+        const scoredMoves = [];
 
         for (const move of moves) {
           game.move(move);
           const score = minimax(depth - 1, -Infinity, Infinity);
           game.undo();
-          scored.push({ move, score });
+          scoredMoves.push({ move, score });
         }
 
-        scored.sort((a, b) =>
+        scoredMoves.sort((a, b) =>
           aiIsBlack ? b.score - a.score : a.score - b.score
         );
 
         let choice = 0;
 
         if (difficulty === "easy") {
-          choice = Math.floor(Math.random() * Math.min(4, scored.length));
+          choice = Math.floor(Math.random() * Math.min(4, scoredMoves.length));
         } else if (difficulty === "medium" && Math.random() < 0.2) {
-          choice = Math.floor(Math.random() * Math.min(3, scored.length));
+          choice = Math.floor(Math.random() * Math.min(3, scoredMoves.length));
         }
 
-        game.move(scored[choice].move);
+        game.move(scoredMoves[choice].move);
       }
 
+      const history = game.history({ verbose: true });
+      const move = history[history.length - 1];
+      lastMove = { from: move.from, to: move.to };
+
       thinking = false;
-      render();
+      renderBoard();
     }
 
-    function newGame() {
-      gameVersion++;
-      game.reset();
-      selected = null;
-      thinking = false;
+    document.getElementById("playButton").addEventListener("click", startGame);
 
-      playerColor = colorElement.value === "random"
-        ? (Math.random() < 0.5 ? "w" : "b")
-        : colorElement.value;
+    document.getElementById("newGameButton").addEventListener("click", startGame);
 
-      // White moves first, so the AI starts if the player chose Black.
-      scheduleAiMove();
-    }
-
-    document.getElementById("newGame").addEventListener("click", newGame);
-    difficultyElement.addEventListener("change", newGame);
-    colorElement.addEventListener("change", newGame);
-
-    newGame();
+    document.getElementById("settingsButton").addEventListener(
+      "click",
+      returnToSettings
+    );
   </script>
+
+
 </body>
 </html>
