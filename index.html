@@ -104,25 +104,46 @@
       }
     }
 
-    /* Remove the white outline around the game frame. */
-    #gameFrame:focus {
-      outline: none;
+    /* Remove the focus outline around the game frame. */
+    #gameFrame,
+    #gameFrame:focus,
+    #gameFrame:focus-visible {
+      outline: none !important;
+      box-shadow: none !important;
     }
 
-    /* Loading text displayed over the black game background. */
+    /* Loading screen displayed over the game background. */
+    .viewer {
+      position: relative;
+      background: #080808;
+    }
+
     .loading-label {
       position: absolute;
       inset: 0;
-      display: grid;
-      place-items: center;
-      color: #888;
-      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.12em;
+      background: #080808;
+      color: #fff;
+      font-size: 32px;
+      font-weight: 700;
+      text-align: center;
       pointer-events: none;
       z-index: 2;
     }
 
-    .viewer {
-      position: relative;
+    .loading-dots::after {
+      content: ".";
+      animation: loading-dots 1.2s steps(1, end) infinite;
+    }
+
+    @keyframes loading-dots {
+      0% { content: "."; }
+      33.333% { content: ".."; }
+      66.666% { content: "..."; }
+      100% { content: "."; }
     }
 
     .loading-label[hidden] {
@@ -193,8 +214,7 @@
     </div>
 
     <div class="viewer">
-      <div id="loadingLabel" class="loading-label" hidden>loading...</div>
-
+      <div id="loadingLabel" class="loading-label" hidden>loading<span class="loading-dots" aria-hidden="true"></span></div>
       <iframe
         id="gameFrame"
         title="Game viewer"
@@ -368,8 +388,6 @@
       gameView.hidden = false;
 
       frame.title = game.name;
-
-      // Show loading text before starting the game.
       loadingLabel.hidden = false;
       frame.src = game.path;
 
@@ -420,7 +438,6 @@
       switchingScreen = false;
     }
 
-    // Hide loading text once the game finishes loading.
     frame.addEventListener("load", () => {
       loadingLabel.hidden = true;
       observeGameMedia();
