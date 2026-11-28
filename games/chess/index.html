@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chess vs AI</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: #171a21;
+      color: #f2f2f2;
+      font-family: system-ui, sans-serif;
+    }
+
+    main {
+      width: min(100%, 520px);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+    }
+
+    .subtitle {
+      color: #b7bdc9;
+      margin: 0 0 18px;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: end;
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: grid;
+      gap: 5px;
+      font-size: 14px;
+    }
+
+    select,
+    .new-game {
+      padding: 9px 12px;
+      border: 1px solid #596170;
+      border-radius: 6px;
+      background: #292f3b;
+      color: white;
+      font: inherit;
+    }
+
+    .new-game {
+      cursor: pointer;
+    }
+
+    .new-game:hover {
+      background: #394253;
+    }
+
+    #status {
+      min-height: 48px;
+      padding: 12px;
+      margin-bottom: 12px;
+      border-radius: 6px;
+      background: #292f3b;
+    }
+
+    #board {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      aspect-ratio: 1;
+      border: 4px solid #0e1014;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .square {
+      position: relative;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      border: 0;
+      cursor: pointer;
+      font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", serif;
+      font-size: clamp(28px, 8vw, 52px);
+      line-height: 1;
+      user-select: none;
+    }
+
+    .light {
+      background: #e8d5ad;
+    }
+
+    .dark {
+      background: #77915f;
+    }
+
+    .square.selected {
+      background: #efd35a;
+    }
+
+    .square.legal::after {
+      content: "";
+      position: absolute;
+      width: 24%;
+      height: 24%;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.25);
+      pointer-events: none;
+    }
+
+    .square.capture::after {
+      content: "";
+      position: absolute;
+      inset: 5%;
+      border: 5px solid rgba(0, 0, 0, 0.25);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .white-piece {
+      color: #fff;
+      text-shadow: 0 1px 2px #000, 0 0 3px #000;
+    }
+
+    .black-piece {
+      color: #171717;
+      text-shadow: 0 1px 1px #ddd;
+    }
+
+    .hint {
+      color: #b7bdc9;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <h1>Chess vs AI</h1>
+    <p class="subtitle">Choose your color and difficulty, then play!</p>
+
+    <div class="controls">
+      <label>
+        AI difficulty
+        <select id="difficulty">
+          <option value="easy">Easy — roughly 400</option>
+          <option value="medium" selected>Medium — roughly 1000</option>
+          <option value="hard">Hard — stronger play</option>
+        </select>
+      </label>
+
+      <label>
+        Play as
+        <select id="playerColor">
+          <option value="w">White</option>
+          <option value="b">Black</option>
+          <option value="random">Random (50/50)</option>
+        </select>
+      </label>
+
+      <button class="new-game" id="newGame">New game</button>
+    </div>
+
+    <div id="status" aria-live="polite"></div>
+    <div id="board" aria-label="Chess board"></div>
+
+    <p class="hint">
+      Click a piece, then click a highlighted square. Pawns promote to queens.
+      Changing a setting starts a new game.
+    </p>
+  </main>
+
+  <script>
+    const boardElement = document.getElementById("board");
+    const statusElement = document.getElementById("status");
+    const difficultyElement = document.getElementById("difficulty");
+    const colorElement = document.getElementById("playerColor");
+
+    if (typeof Chess === "undefined") {
+      statusElement.textContent =
+        "Could not load the chess library. Check your internet connection and reload.";
+      throw new Error("chess.js failed to load");
+    }
+
+    const game = new Chess();
+    const files = "abcdefgh";
+
+    const symbols = {
+      w: { k: "♔", q: "♕", r: "♖", b: "♗", n: "♘", p: "♙" },
+      b: { k: "♚", q: "♛", r: "♜", b: "♝", n: "♞", p: "♟" }
+    };
+
+    const values = {
+      p: 100,
+      n: 320,
+      b: 330,
+      r: 500,
+      q: 900,
+      k: 0
+    };
+
+    let playerColor = "w";
+    let selected = null;
+    let thinking = false;
+    let gameVersion = 0;
+
+    function updateStatus() {
+      const colorName = playerColor === "w" ? "White" : "Black";
+
+      if (game.in_checkmate()) {
+        statusElement.textContent =
+          game.turn() === playerColor
+            ? "Checkmate! The AI wins."
+            : "Checkmate! You win!";
+      } else if (game.in_draw()) {
+        statusElement.textContent = "Draw!";
+      } else if (thinking) {
+        statusElement.textContent = `You are ${colorName}. AI is thinking…`;
+      } else {
+        statusElement.textContent =
+          `You are ${colorName}. ` +
+          (game.turn() === playerColor ? "Your turn" : "AI's turn") +
+          (game.in_check() ? " — check!" : "");
+      }
+    }
+
+    function render() {
+      boardElement.innerHTML = "";
+
+      const legalMoves = selected
+        ? game.moves({ square: selected, verbose: true })
+        : [];
+
+      // Put the player's pieces at the bottom.
+      const ranks = playerColor === "w"
+        ? [8, 7, 6, 5, 4, 3, 2, 1]
+        : [1, 2, 3, 4, 5, 6, 7, 8];
+
+      const boardFiles = playerColor === "w"
+        ? [...files]
+        : [...files].reverse();
+
+      for (const rank of ranks) {
+        for (const file of boardFiles) {
+          const square = file + rank;
+          const piece = game.get(square);
+          const legal = legalMoves.some(move => move.to === square);
+          const button = document.createElement("button");
+
+          button.type = "button";
+          button.className = "square " +
+            ((files.indexOf(file) + rank) % 2 === 0 ? "dark" : "light");
+
+          if (square === selected) {
+            button.classList.add("selected");
+          }
+
+          if (legal) {
+            button.classList.add(piece ? "capture" : "legal");
+          }
+
+          button.setAttribute(
+            "aria-label",
+            square + (piece
+              ? ` ${piece.color === "w" ? "white" : "black"} ${piece.type}`
+              : "")
+          );
+
+          if (piece) {
+            const span = document.createElement("span");
+            span.className = piece.color === "w"
+              ? "white-piece"
+              : "black-piece";
+            span.textContent = symbols[piece.color][piece.type];
+            button.appendChild(span);
+          }
+
+          button.addEventListener("click", () => handleSquare(square));
+          boardElement.appendChild(button);
+        }
+      }
+
+      updateStatus();
+    }
+
+    function scheduleAiMove() {
+      if (game.game_over() || game.turn() === playerColor) {
+        render();
+        return;
+      }
+
+      thinking = true;
+      const version = gameVersion;
+      render();
+
+      setTimeout(() => {
+        if (version !== gameVersion) return;
+        makeAiMove();
+      }, 50);
+    }
+
+    function handleSquare(square) {
+      if (thinking || game.game_over() || game.turn() !== playerColor) {
+        return;
+      }
+
+      const piece = game.get(square);
+
+      if (selected) {
+        const move = game.move({
+          from: selected,
+          to: square,
+          promotion: "q"
+        });
+
+        if (move) {
+          selected = null;
+          scheduleAiMove();
+          return;
+        }
+      }
+
+      selected = piece && piece.color === playerColor ? square : null;
+      render();
+    }
+
+    // Positive scores favor Black; negative scores favor White.
+    function evaluate() {
+      if (game.in_checkmate()) {
+        return game.turn() === "w" ? 100000 : -100000;
+      }
+
+      if (game.in_draw()) return 0;
+
+      let score = 0;
+      const position = game.board();
+
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          const piece = position[row][col];
+          if (!piece) continue;
+
+          let value = values[piece.type];
+          const center = 3.5 -
+            (Math.abs(3.5 - row) + Math.abs(3.5 - col)) / 2;
+
+          if (piece.type === "n" || piece.type === "b") {
+            value += center * 12;
+          }
+
+          if (piece.type === "p") {
+            value += center * 4;
+            value += (piece.color === "w" ? 6 - row : row - 1) * 6;
+          }
+
+          score += piece.color === "b" ? value : -value;
+        }
+      }
+
+      return score;
+    }
+
+    function orderedMoves() {
+      return game.moves({ verbose: true }).sort((a, b) => {
+        const priority = move =>
+          (move.captured ? values[move.captured] * 10 - values[move.piece] : 0) +
+          (move.promotion ? 800 : 0);
+
+        return priority(b) - priority(a);
+      });
+    }
+
+    function minimax(depth, alpha, beta) {
+      if (depth === 0 || game.game_over()) {
+        return evaluate();
+      }
+
+      const maximizing = game.turn() === "b";
+      let best = maximizing ? -Infinity : Infinity;
+
+      for (const move of orderedMoves()) {
+        game.move(move);
+        const score = minimax(depth - 1, alpha, beta);
+        game.undo();
+
+        if (maximizing) {
+          best = Math.max(best, score);
+          alpha = Math.max(alpha, best);
+        } else {
+          best = Math.min(best, score);
+          beta = Math.min(beta, best);
+        }
+
+        if (beta <= alpha) break;
+      }
+
+      return best;
+    }
+
+    function makeAiMove() {
+      const difficulty = difficultyElement.value;
+      const moves = orderedMoves();
+
+      if (!moves.length) {
+        thinking = false;
+        render();
+        return;
+      }
+
+      // Easy sometimes chooses a random legal move.
+      if (difficulty === "easy" && Math.random() < 0.55) {
+        game.move(moves[Math.floor(Math.random() * moves.length)]);
+      } else {
+        const depth = difficulty === "hard"
+          ? 3
+          : difficulty === "medium"
+            ? 2
+            : 1;
+
+        const aiIsBlack = game.turn() === "b";
+        const scored = [];
+
+        for (const move of moves) {
+          game.move(move);
+          const score = minimax(depth - 1, -Infinity, Infinity);
+          game.undo();
+          scored.push({ move, score });
+        }
+
+        scored.sort((a, b) =>
+          aiIsBlack ? b.score - a.score : a.score - b.score
+        );
+
+        let choice = 0;
+
+        if (difficulty === "easy") {
+          choice = Math.floor(Math.random() * Math.min(4, scored.length));
+        } else if (difficulty === "medium" && Math.random() < 0.2) {
+          choice = Math.floor(Math.random() * Math.min(3, scored.length));
+        }
+
+        game.move(scored[choice].move);
+      }
+
+      thinking = false;
+      render();
+    }
+
+    function newGame() {
+      gameVersion++;
+      game.reset();
+      selected = null;
+      thinking = false;
+
+      playerColor = colorElement.value === "random"
+        ? (Math.random() < 0.5 ? "w" : "b")
+        : colorElement.value;
+
+      // White moves first, so the AI starts if the player chose Black.
+      scheduleAiMove();
+    }
+
+    document.getElementById("newGame").addEventListener("click", newGame);
+    difficultyElement.addEventListener("change", newGame);
+    colorElement.addEventListener("change", newGame);
+
+    newGame();
+  </script>
+</body>
+</html>
