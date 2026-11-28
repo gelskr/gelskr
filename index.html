@@ -439,10 +439,36 @@
     }
 
     frame.addEventListener("load", () => {
-      loadingLabel.hidden = true;
-      observeGameMedia();
-      focusGame();
-    });
+  loadingLabel.hidden = true;
+
+  // Remove focus outlines from elements inside the game.
+  try {
+    const gameDocument = frame.contentDocument;
+
+    if (gameDocument) {
+      const style = gameDocument.createElement("style");
+
+      style.textContent = `
+        iframe,
+        canvas,
+        canvas:focus,
+        canvas:focus-visible,
+        *:focus,
+        *:focus-visible {
+          outline: none !important;
+          box-shadow: none !important;
+        }
+      `;
+
+      gameDocument.head.appendChild(style);
+    }
+  } catch (error) {
+    // Some games may not allow access to their contents.
+  }
+
+  observeGameMedia();
+  focusGame();
+});
 
     muteButton.addEventListener("click", () => {
       muted = !muted;
